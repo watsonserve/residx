@@ -6,69 +6,19 @@ package main
 import "C"
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io/fs"
-	"os"
-	"path"
-	"path/filepath"
 	"unsafe"
 )
 
-type EnMediaType int
+const BUFSIZ = 2048
 
 const UNKNOW = 0
 const PICTURE = 1
 const AUDIO = 2
 const VIEDO = 3
 
-const BUFSIZ = 2048
-
-func mediaType(filename string) EnMediaType {
-	switch path.Ext(filename) {
-	case ".mp3":
-		fallthrough
-	case ".wav":
-		fallthrough
-	case ".flac":
-		fallthrough
-	case ".ape":
-		fallthrough
-	case ".wma":
-		fallthrough
-	case ".aac":
-		fallthrough
-	case ".aiff":
-		return AUDIO
-	default:
-	}
-	return UNKNOW
-}
-
-func WalkDir(root string) ([]string, error) {
-	files := make([]string, 0)
-	fn := func(filename string, info fs.DirEntry, err error) error {
-		if nil != err {
-			return err
-		}
-
-		// if ".git" == info.Name() {
-		// 	return filepath.SkipDir
-		// }
-
-		if !info.IsDir() && AUDIO == mediaType(filename) {
-			files = append(files, filename)
-		}
-
-		return nil
-	}
-
-	err := filepath.WalkDir(root, fn)
-
-	return files, err
-}
+type EnMediaType int
 
 type AudioMeta struct {
 	Url        string `json:"url"`
@@ -93,32 +43,26 @@ func loadAudioMeta(file string, mem unsafe.Pointer) (*AudioMeta, error) {
 
 	meta := &AudioMeta{}
 	err := json.Unmarshal(C.GoBytes(mem, cret), meta)
-	if nil != err {
-		return nil, err
+	if nil == err {
+		if "" == meta.Title {
+			meta.Title = fileBaseName(file)
+		}
+		meta.Url = file
+		meta.Hash, err = sha1File(file)
 	}
 
-	return meta, nil
+	return meta, err
 }
 
-func SHA1(src string) string {
-	return fmt.Sprintf("%x", sha1.Sum([]byte(src)))
-}
-
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprint(os.Stderr, os.Args[0]+" dirpath")
-		return
-	}
-
-	root := os.Args[1]
+func search(root string) ([]*AudioMeta, error) {
 	mem := C.malloc(C.size_t(BUFSIZ))
 
 	files, err := WalkDir(root)
 	if nil != err {
-		fmt.Fprint(os.Stderr, err.Error())
-		return
+		return nil, err
 	}
 
+	audioList := make([]*AudioMeta, 0)
 	for _, file := range files {
 		meta, err := loadAudioMeta(file, mem)
 
@@ -126,12 +70,16 @@ func main() {
 			continue
 		}
 
-		if "" == meta.Title {
-			meta.Title = file
-		}
-
-		fmt.Println(meta)
+		audioList = append(audioList, meta)
 	}
 
 	C.free(mem)
+
+	return audioList, nil
 }
+
+// root := os.Args[1]
+// if len(os.Args) < 2 {
+// 	fmt.Fprint(os.Stderr, os.Args[0]+" dirpath")
+// 	return
+// }
