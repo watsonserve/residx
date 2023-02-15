@@ -6,8 +6,14 @@ package main
 import "C"
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io/fs"
+	"log"
+	"os"
+	"path/filepath"
 	"unsafe"
 )
 
@@ -54,32 +60,72 @@ func loadAudioMeta(file string, mem unsafe.Pointer) (*AudioMeta, error) {
 	return meta, err
 }
 
-func search(root string) ([]*AudioMeta, error) {
-	mem := C.malloc(C.size_t(BUFSIZ))
-
-	files, err := WalkDir(root)
-	if nil != err {
-		return nil, err
-	}
-
-	audioList := make([]*AudioMeta, 0)
-	for _, file := range files {
-		meta, err := loadAudioMeta(file, mem)
-
-		if nil != err {
-			continue
-		}
-
-		audioList = append(audioList, meta)
-	}
-
-	C.free(mem)
-
-	return audioList, nil
+type FileError struct {
+	filename string
+	err      error
 }
 
-// root := os.Args[1]
-// if len(os.Args) < 2 {
-// 	fmt.Fprint(os.Stderr, os.Args[0]+" dirpath")
-// 	return
-// }
+func search(root string) ([]*AudioMeta, []*FileError, error) {
+	mem := C.malloc(C.size_t(BUFSIZ))
+	if nil == mem {
+		return nil, nil, errors.New("no memary")
+	}
+	defer C.free(mem)
+
+	audioList := make([]*AudioMeta, 0)
+	errList := make([]*FileError, 0)
+
+	err := filepath.WalkDir(root, func(filename string, info fs.DirEntry, err error) error {
+		if nil != err {
+			errList = append(errList, &FileError{filename, err})
+			return filepath.SkipDir
+		}
+
+		if info.IsDir() || AUDIO != mediaType(filename) {
+			return nil
+		}
+
+		meta, err := loadAudioMeta(filename, mem)
+		if nil == err {
+			audioList = append(audioList, meta)
+		} else {
+			errList = append(errList, &FileError{filename, err})
+		}
+
+		return nil
+	})
+
+	if 0 == len(errList) {
+		errList = nil
+	}
+
+	return audioList, errList, err
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprint(os.Stderr, os.Args[0]+" dirpath")
+		return
+	}
+
+	root := os.Args[1]
+	audioList, errList, err := search(root)
+	if nil != err {
+	}
+	if nil != errList {
+
+	}
+
+	var db *sql.DB
+	result, err := db.Exec("INSERR INTO ? VALUES (), ()?", id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rows != 1 {
+		log.Fatalf("expected to affect 1 row, affected %d", rows)
+	}
+}
