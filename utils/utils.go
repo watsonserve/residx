@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"crypto/sha1"
@@ -8,27 +8,29 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/watsonserve/goutils"
 )
 
-func mediaType(filename string) EnMediaType {
-	switch path.Ext(filename) {
-	case ".mp3":
-		fallthrough
-	case ".wav":
-		fallthrough
-	case ".flac":
-		fallthrough
-	case ".ape":
-		fallthrough
-	case ".wma":
-		fallthrough
-	case ".aac":
-		fallthrough
-	case ".aiff":
-		return AUDIO
-	default:
+func GetOption() (map[string][]string, error) {
+	options := []goutils.Option{
+		{
+			Opt:       'h',
+			Option:    "help",
+			HasParams: false,
+		},
+		{
+			Opt:       'c',
+			Option:    "config",
+			HasParams: true,
+		},
 	}
-	return UNKNOW
+	argMap, params := goutils.GetOptions(options)
+	cfg, err := goutils.GetConf(argMap["config"])
+	if nil == err {
+		cfg["listen"] = params
+	}
+	return cfg, err
 }
 
 func WalkDir(root string) ([]string, error) {
@@ -54,7 +56,7 @@ func WalkDir(root string) ([]string, error) {
 	return files, err
 }
 
-func sha1File(filePath string) (string, error) {
+func Sha1File(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	hash := sha1.New()
 	hashVal := ""
@@ -71,7 +73,7 @@ func sha1File(filePath string) (string, error) {
 	return hashVal, err
 }
 
-func fileBaseName(name string) string {
+func FileBaseName(name string) string {
 	name = path.Base(path.Clean(name))
 
 	for i := len(name) - 1; i >= 0 && name[i] != '/'; i-- {

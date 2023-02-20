@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package entities;
+
+message StdPacket {
+  int code = 1;
+  string msg = 2;
+  bytes data = 3;
+}
