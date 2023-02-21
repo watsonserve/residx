@@ -2,6 +2,7 @@ package actions
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/watsonserve/goengine"
@@ -48,32 +49,37 @@ func (a *action) searchMusic(res http.ResponseWriter, req *http.Request) {
 	}
 
 	for {
-		if "GET" != req.Method {
+		if "POST" != req.Method {
 			httpCode = http.StatusMethodNotAllowed
 			ret.Code = -1
-			ret.Msg = "request method must be GET"
+			ret.Msg = "request method must be POST"
 			break
 		}
 
-		query := req.URL.Query()
-		attr := query.Get("attr")
-		value := query.Get("value")
-		if "" != musicId {
+		conditions := map[string]interface{}{}
+		content, err := io.ReadAll(req.Body)
+		if nil == err {
+			err = json.Unmarshal(content, &conditions)
+		}
+		if nil != err {
 			httpCode = http.StatusBadRequest
 			ret.Code = -1
-			ret.Msg = "id is required"
+			ret.Msg = "Request body format must be json"
 			break
 		}
 
-		meta, err := a.srv.GetMusicMeta(musicId)
+		offset := conditions["offset"]
+		limit := conditions["limit"]
+		delete(conditions, "offset")
+		delete(conditions, "limit")
+		result, err := a.srv.Find(conditions, offset.(int64), limit.(int))
+		ret.Data = result
 
 		if nil != err {
 			ret.Code = -1
 			ret.Msg = err.Error()
-			break
 		}
 
-		ret.Data = meta
 		break
 	}
 

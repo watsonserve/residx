@@ -4,10 +4,8 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"io"
-	"io/fs"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/watsonserve/goutils"
 )
@@ -31,29 +29,6 @@ func GetOption() (map[string][]string, error) {
 		cfg["listen"] = params
 	}
 	return cfg, err
-}
-
-func WalkDir(root string) ([]string, error) {
-	files := make([]string, 0)
-	fn := func(filename string, info fs.DirEntry, err error) error {
-		if nil != err {
-			return err
-		}
-
-		// if ".git" == info.Name() {
-		// 	return filepath.SkipDir
-		// }
-
-		if !info.IsDir() && AUDIO == mediaType(filename) {
-			files = append(files, filename)
-		}
-
-		return nil
-	}
-
-	err := filepath.WalkDir(root, fn)
-
-	return files, err
 }
 
 func Sha1File(filePath string) (string, error) {

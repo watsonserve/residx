@@ -33,10 +33,14 @@ func main() {
 	}
 
 	// redis client and session manager
-	redis := goengine.NewRedisStore(redisAddr, "", 0)
-	if nil == redis {
-		fmt.Fprint(os.Stderr, "Connect to redis failed")
-		return
+	var sm goengine.SessionManager = nil
+	if "" != redisAddr {
+		redis := goengine.NewRedisStore(redisAddr, "", 0)
+		if nil == redis {
+			fmt.Fprint(os.Stderr, "Connect to redis failed")
+			return
+		}
+		sm = goengine.InitSessionManager(redis, "_rs", "sess:", "rsch:", "")
 	}
 
 	ac := actions.New(db, cfg["root"][0])
@@ -44,7 +48,6 @@ func main() {
 	ac.Bind(router)
 
 	// set up http server
-	sm := goengine.InitSessionManager(redis, "_rs", "sess:", "rsch:", "")
 	app := goengine.New(sm)
 	app.UseRouter(router)
 	if "../" == lis[0:3] || "./" == lis[0:2] || '/' == lis[0] {
