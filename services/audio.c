@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <libavformat/avformat.h>
-#include <libavutil/dict.h>
-#include <libavcodec/avcodec.h>
+#include "stdafx.h"
 
 static int64_t toLow(char *str)
 {
