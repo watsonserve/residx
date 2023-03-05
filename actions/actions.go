@@ -163,7 +163,7 @@ func (a *action) saveAttr(res http.ResponseWriter, req *http.Request) {
 			break
 		}
 
-		err := a.srv.SaveAttr(form.Rid, form.Key, form.Value)
+		err = a.srv.SaveAttr(form.Rid, form.Key, form.Value)
 		if nil != err {
 			ret.Code = -1
 			ret.Msg = err.Error()

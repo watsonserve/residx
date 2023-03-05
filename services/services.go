@@ -1,6 +1,7 @@
 package services
 
 import (
+	"go.mongodb.org/mongo-driver/bson"
 	"github.com/watsonserve/scaner/dao"
 )
 
@@ -18,8 +19,8 @@ func New(daoIns dao.Dao, root string) *Srv {
 	return &Srv{daoIns, root, searchStat}
 }
 
-func (s *Srv) GetMusicMeta(id string) (map[string]interface{}, error) {
-	return s.daoIns.GetMusicMeta(id)
+func (s *Srv) GetMusicMeta(id string) ([]bson.M, error) {
+	return s.daoIns.GetMusic(id)
 }
 
 func (s *Srv) Find(cond map[string]interface{}, offset int64, limit int) (map[string]interface{}, error) {
