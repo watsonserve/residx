@@ -28,10 +28,10 @@ type action struct {
 	srv *services.Srv
 }
 
-func New(db *mongo.Database, root string) goengine.HttpAction {
+func New(db *mongo.Database) goengine.HttpAction {
 	_dao := dao.New(db)
 
-	return &action{srv: services.New(_dao, root)}
+	return &action{srv: services.New(_dao)}
 }
 
 func (a *action) Bind(router *goengine.HttpRoute) {

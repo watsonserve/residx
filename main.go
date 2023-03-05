@@ -43,7 +43,7 @@ func main() {
 		sm = goengine.InitSessionManager(redis, "_rs", "sess:", "rsch:", "")
 	}
 
-	ac := actions.New(db, cfg["root"][0])
+	ac := actions.New(db)
 	router := goengine.InitHttpRoute()
 	ac.Bind(router)
 
