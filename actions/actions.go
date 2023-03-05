@@ -35,7 +35,7 @@ func New(db *mongo.Database, root string) goengine.HttpAction {
 }
 
 func (a *action) Bind(router *goengine.HttpRoute) {
-	router.Set("/scan-music", a.scanMusic)
+	router.Set("/autocomplete", a.searchMusic)
 	router.Set("/search-music", a.searchMusic)
 	router.Set("/music-meta", a.getMusicMeta)
 }
@@ -126,9 +126,9 @@ func (a *action) getMusicMeta(res http.ResponseWriter, req *http.Request) {
 	sendJSON(res, httpCode, ret)
 }
 
-func (a *action) scanMusic(res http.ResponseWriter, req *http.Request) {
-	a.srv.MakeResourcesIndex()
-	headers := res.Header()
-	headers.Set("Content-Type", "application/json")
-	res.Write([]byte("{}"))
+/**
+ * search
+ */
+func (d *daoIns) autoComplete(res http.ResponseWriter, req *http.Request) {
+
 }

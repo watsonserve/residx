@@ -45,6 +45,9 @@ func New(db *mongo.Database) Dao {
 	}
 }
 
+/**
+ * get one resource by ID
+ */
 func (d *daoIns) GetMusicMeta(id string) (map[string]interface{}, error) {
 	coll := d.db.Collection("music")
 
@@ -57,6 +60,9 @@ func (d *daoIns) GetMusicMeta(id string) (map[string]interface{}, error) {
 	return result, err
 }
 
+/**
+ * find by conditions
+ */
 func (d *daoIns) Find(cond map[string]interface{}, offset int64, limit int) ([]bson.M, int64, error) {
 	conditions := make([]bson.E, 0)
 	for key, value := range cond {
@@ -67,6 +73,9 @@ func (d *daoIns) Find(cond map[string]interface{}, offset int64, limit int) ([]b
 	return find(coll, conditions, offset, limit)
 }
 
+/**
+ * save
+ */
 func (d *daoIns) SaveResources(metas []*entities.AudioMeta) error {
 	coll := d.db.Collection("music")
 

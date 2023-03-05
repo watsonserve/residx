@@ -1,4 +1,4 @@
-package services
+package main
 
 // #cgo CFLAGS: -I /usr/include/x86_64-linux-gnu
 // #cgo LDFLAGS: -L /usr/lib/x86_64-linux-gnu -lavformat -lavcodec -lavutil
