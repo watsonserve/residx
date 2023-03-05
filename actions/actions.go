@@ -36,8 +36,8 @@ func New(db *mongo.Database) goengine.HttpAction {
 
 func (a *action) Bind(router *goengine.HttpRoute) {
 	router.Set("/save-attr", a.saveAttr)
-	router.Set("/search-music", a.searchMusic)
-	router.Set("/music-meta", a.getMusicMeta)
+	router.Set("/search", a.searchMusic)
+	router.Set("/meta", a.getMusicMeta)
 }
 
 func (a *action) searchMusic(res http.ResponseWriter, req *http.Request) {
@@ -104,7 +104,7 @@ func (a *action) getMusicMeta(res http.ResponseWriter, req *http.Request) {
 
 		query := req.URL.Query()
 		musicId := query.Get("id")
-		if "" != musicId {
+		if "" == musicId {
 			httpCode = http.StatusBadRequest
 			ret.Code = -1
 			ret.Msg = "id is required"
