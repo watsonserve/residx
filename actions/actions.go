@@ -35,7 +35,7 @@ func New(db *mongo.Database, root string) goengine.HttpAction {
 }
 
 func (a *action) Bind(router *goengine.HttpRoute) {
-	router.Set("/autocomplete", a.searchMusic)
+	router.Set("/save-attr", a.saveAttr)
 	router.Set("/search-music", a.searchMusic)
 	router.Set("/music-meta", a.getMusicMeta)
 }
@@ -126,9 +126,50 @@ func (a *action) getMusicMeta(res http.ResponseWriter, req *http.Request) {
 	sendJSON(res, httpCode, ret)
 }
 
-/**
- * search
- */
-func (d *daoIns) autoComplete(res http.ResponseWriter, req *http.Request) {
+type attr struct {
+	Rid   string `json:"rid"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
 
+/**
+ * save attr
+ */
+func (a *action) saveAttr(res http.ResponseWriter, req *http.Request) {
+	httpCode := 200
+	ret := &entities.StdJSONPacket{
+		Code: 0,
+		Msg:  "",
+		Data: nil,
+	}
+
+	for {
+		if "POST" != req.Method {
+			httpCode = http.StatusMethodNotAllowed
+			ret.Code = -1
+			ret.Msg = "request method must be POST"
+			break
+		}
+
+		form := &attr{}
+		content, err := io.ReadAll(req.Body)
+		if nil == err {
+			err = json.Unmarshal(content, &form)
+		}
+		if nil != err {
+			httpCode = http.StatusBadRequest
+			ret.Code = -1
+			ret.Msg = "Request body format must be json"
+			break
+		}
+
+		err := a.srv.SaveAttr(form.Rid, form.Key, form.Value)
+		if nil != err {
+			ret.Code = -1
+			ret.Msg = err.Error()
+		}
+		break
+	}
+
+	sendJSON(res, httpCode, ret)
 }

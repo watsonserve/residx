@@ -10,8 +10,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const ATTR_COLLECTION = "md_attr"
+const MUSIC_COLLECTION = "md_music"
+const AUDIO_COLLECTION = "md_audio"
+
 type Dao interface {
-	GetMusicMeta(id string) (map[string]interface{}, error)
+	GetMusic(rid string) ([]map[string]interface{}, error)
 	Find(cond map[string]interface{}, offset int64, limit int) ([]bson.M, int64, error)
 	SaveResources(metas []*entities.AudioMeta) error
 }
@@ -48,16 +52,18 @@ func New(db *mongo.Database) Dao {
 /**
  * get one resource by ID
  */
-func (d *daoIns) GetMusicMeta(id string) (map[string]interface{}, error) {
-	coll := d.db.Collection("music")
+func (d *daoIns) GetMusic(rid string) ([]map[string]interface{}, error) {
+	coll := d.db.Collection(AUDIO_COLLECTION)
 
-	var result bson.M
-	err := coll.FindOne(context.TODO(), bson.D{{"id", id}}).Decode(&result)
-	if mongo.ErrNoDocuments == err {
-		err = nil
+	var result []bson.M
+	cursor, _err := coll.Find(context.TODO(), bson.D{{"rid", id}}, options.Find())
+	err = _err
+
+	if nil == err {
+		err = cursor.All(context.TODO(), &results)
 	}
 
-	return result, err
+	return results, err
 }
 
 /**
@@ -69,15 +75,28 @@ func (d *daoIns) Find(cond map[string]interface{}, offset int64, limit int) ([]b
 		conditions = append(conditions, bson.E{Key: key, Value: value})
 	}
 
-	coll := d.db.Collection("music")
+	coll := d.db.Collection(MUSIC_COLLECTION)
 	return find(coll, conditions, offset, limit)
+}
+
+func (d *daoIns) SaveAttr(rId string, key string, value string) error {
+	coll := d.db.Collection(MUSIC_COLLECTION)
+	opts := options.Update().SetUpsert(true)
+	update := bson.D{{ "$set", bson.D{{ key, value }} }}
+	result, err := coll.UpdateOne(context.TODO(), bson.D{{ "rid", rId }}, update, opts)
+
+	if nil == err && (0 == result.MatchedCount || 0 == result.UpsertedCount) {
+		err = error.New("none record updated")
+	}
+
+	return err
 }
 
 /**
  * save
  */
 func (d *daoIns) SaveResources(metas []*entities.AudioMeta) error {
-	coll := d.db.Collection("music")
+	coll := d.db.Collection(AUDIO_COLLECTION)
 
 	docs := make([]interface{}, len(metas))
 	for i, item := range metas {

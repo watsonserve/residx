@@ -32,3 +32,7 @@ func (s *Srv) Find(cond map[string]interface{}, offset int64, limit int) (map[st
 	ret["total"] = total
 	return ret, err
 }
+
+func (s *Srv) SaveAttr(rId string, key string, value string) error {
+	return s.daoIns.SaveAttr(rId, key, value)
+}
