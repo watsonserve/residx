@@ -68,11 +68,11 @@ func (a *action) searchMusic(res http.ResponseWriter, req *http.Request) {
 			break
 		}
 
-		offset := conditions["offset"]
-		limit := conditions["limit"]
+		offset := conditions["offset"].(float64)
+		limit := conditions["limit"].(float64)
 		delete(conditions, "offset")
 		delete(conditions, "limit")
-		result, err := a.srv.Find(conditions, offset.(int64), limit.(int))
+		result, err := a.srv.Find(conditions, int64(offset), int(limit))
 		ret.Data = result
 
 		if nil != err {
