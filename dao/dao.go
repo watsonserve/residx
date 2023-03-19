@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/watsonserve/residx/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -28,7 +29,7 @@ func find(coll *mongo.Collection, conditions bson.D, offset int64, limit int) ([
 	cntOpts := options.Count().SetMaxTime(2 * time.Second)
 	total, err := coll.CountDocuments(context.TODO(), conditions, cntOpts)
 	if nil != err || 0 == total || 0 == limit {
-		return results, total, err
+		return make([]bson.M, 0), total, err
 	}
 
 	findOpts := options.Find().SetSkip(offset).SetLimit(int64(limit))
@@ -55,12 +56,16 @@ func (d *daoIns) GetMusic(rid string) ([]bson.M, error) {
 	coll := d.db.Collection(AUDIO_COLLECTION)
 
 	var results []bson.M
-	cursor, err := coll.Find(context.TODO(), bson.D{{"rid", rid}}, options.Find())
+	cursor, err := coll.Find(context.TODO(), bson.D{{Key: "rid", Value: rid}}, options.Find())
 
 	if nil == err {
 		err = cursor.All(context.TODO(), &results)
 	}
 
+	for _, item := range results {
+		item["aid"] = item["_id"]
+		delete(item, "_id")
+	}
 	return results, err
 }
 
@@ -68,20 +73,25 @@ func (d *daoIns) GetMusic(rid string) ([]bson.M, error) {
  * find by conditions
  */
 func (d *daoIns) Find(cond map[string]interface{}, offset int64, limit int) ([]bson.M, int64, error) {
-	conditions := make([]bson.E, 0)
-	for key, value := range cond {
-		conditions = append(conditions, bson.E{Key: key, Value: value})
+	conditions := utils.MapToKvList(cond)
+	coll := d.db.Collection(MUSIC_COLLECTION)
+	results, count, err := find(coll, conditions, offset, limit)
+
+	if nil != results {
+		for _, item := range results {
+			item["rid"] = item["_id"]
+			delete(item, "_id")
+		}
 	}
 
-	coll := d.db.Collection(MUSIC_COLLECTION)
-	return find(coll, conditions, offset, limit)
+	return results, count, err
 }
 
 func (d *daoIns) SaveAttr(rId string, key string, value string) error {
 	coll := d.db.Collection(MUSIC_COLLECTION)
 	opts := options.Update().SetUpsert(true)
-	update := bson.D{{"$set", bson.D{{key, value}}}}
-	result, err := coll.UpdateOne(context.TODO(), bson.D{{"rid", rId}}, update, opts)
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: key, Value: value}}}}
+	result, err := coll.UpdateOne(context.TODO(), bson.D{{Key: "_id", Value: rId}}, update, opts)
 
 	if nil == err && (0 == result.MatchedCount || 0 == result.UpsertedCount) {
 		err = errors.New("none record updated")
