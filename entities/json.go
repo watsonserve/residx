@@ -1,13 +1,15 @@
 package entities
 
 type ResourceMeta struct {
-	Id         string `json:"id"`
-	Title      string `json:"title"`
-	Album      string `json:"album"`
-	Artist     string `json:"artist"`
+	Rid         string `json:"rid"`
+	signCode    string `json:"signCode"`
+	Title       string `json:"title"`
+	Album       string `json:"album"`
+	Artist      string `json:"artist"`
 }
 
 type AudioMeta struct {
+	Aid        string `json:"aid"`
 	Rid        string `json:"rid"`
 	Url        string `json:"url"`
 	Hash       string `json:"hash"`
