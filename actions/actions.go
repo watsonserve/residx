@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/watsonserve/goengine"
-	"github.com/watsonserve/scaner/dao"
-	"github.com/watsonserve/scaner/entities"
-	"github.com/watsonserve/scaner/services"
+	"github.com/watsonserve/residx/dao"
+	"github.com/watsonserve/residx/entities"
+	"github.com/watsonserve/residx/services"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

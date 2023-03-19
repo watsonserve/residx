@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/watsonserve/goengine"
-	"github.com/watsonserve/scaner/actions"
-	"github.com/watsonserve/scaner/utils"
+	"github.com/watsonserve/residx/actions"
+	"github.com/watsonserve/residx/utils"
 )
 
 func main() {

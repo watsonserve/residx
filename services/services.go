@@ -1,8 +1,8 @@
 package services
 
 import (
+	"github.com/watsonserve/residx/dao"
 	"go.mongodb.org/mongo-driver/bson"
-	"github.com/watsonserve/scaner/dao"
 )
 
 type Srv struct {

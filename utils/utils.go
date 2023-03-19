@@ -8,6 +8,7 @@ import (
 	"path"
 
 	"github.com/watsonserve/goutils"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func GetOption() (map[string][]string, error) {
@@ -59,4 +60,33 @@ func FileBaseName(name string) string {
 	}
 
 	return name
+}
+
+func ToMap(val interface{}) (bson.M, error) {
+	bs, err := bson.Marshal(val)
+	if nil != err {
+		return nil, err
+	}
+	result := bson.M{}
+	err = bson.Unmarshal(bs, result)
+	return result, err
+}
+
+func MapToKvList(m bson.M) bson.D {
+	result := make([]bson.E, 0)
+	for k, v := range m {
+		result = append(result, bson.E{Key: k, Value: v})
+	}
+	return result
+}
+
+func MapFilter(m bson.M, ks []string) bson.M {
+	result := bson.M{}
+	for _, k := range ks {
+		v, has := m[k]
+		if has {
+			result[k] = v
+		}
+	}
+	return result
 }

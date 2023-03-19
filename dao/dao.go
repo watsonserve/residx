@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/watsonserve/scaner/entities"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -81,8 +80,8 @@ func (d *daoIns) Find(cond map[string]interface{}, offset int64, limit int) ([]b
 func (d *daoIns) SaveAttr(rId string, key string, value string) error {
 	coll := d.db.Collection(MUSIC_COLLECTION)
 	opts := options.Update().SetUpsert(true)
-	update := bson.D{{ "$set", bson.D{{ key, value }} }}
-	result, err := coll.UpdateOne(context.TODO(), bson.D{{ "rid", rId }}, update, opts)
+	update := bson.D{{"$set", bson.D{{key, value}}}}
+	result, err := coll.UpdateOne(context.TODO(), bson.D{{"rid", rId}}, update, opts)
 
 	if nil == err && (0 == result.MatchedCount || 0 == result.UpsertedCount) {
 		err = errors.New("none record updated")
