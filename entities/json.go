@@ -19,6 +19,11 @@ type AudioMeta struct {
 	Duration   int64  `json:"duration"`
 }
 
+type Meta struct {
+	entities.AudioMeta
+	entities.ResourceMeta
+}
+
 type StdJSONPacket struct {
 	Code int         `json:"code"`
 	Msg  string      `json:"msg"`

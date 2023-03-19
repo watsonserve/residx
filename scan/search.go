@@ -48,12 +48,7 @@ func mediaType(filename string) EnMediaType {
 	return UNKNOW
 }
 
-type Meta struct {
-	entities.AudioMeta
-	entities.ResourceMeta
-}
-
-func loadAudioMeta(file string, mem unsafe.Pointer) (*Meta, error) {
+func loadAudioMeta(file string, mem unsafe.Pointer) (*entities.Meta, error) {
 	c_filename := C.CString(file)
 	cret := C.load_audio(c_filename, mem, C.size_t(BUFSIZ))
 	C.free(unsafe.Pointer(c_filename))
@@ -62,7 +57,7 @@ func loadAudioMeta(file string, mem unsafe.Pointer) (*Meta, error) {
 		return nil, errors.New("load audio failed")
 	}
 
-	meta := &Meta{}
+	meta := &entities.Meta{}
 	err := json.Unmarshal(C.GoBytes(mem, cret), meta)
 	if nil == err {
 		if "" == meta.Title {
@@ -80,14 +75,14 @@ type FileError struct {
 	Filename string
 }
 
-func search(root string) ([]*Meta, []*FileError, error) {
+func search(root string) ([]*entities.Meta, []*FileError, error) {
 	mem := C.malloc(C.size_t(BUFSIZ))
 	if nil == mem {
 		return nil, nil, errors.New("no memary")
 	}
 	defer C.free(mem)
 
-	audioList := make([]*Meta, 0)
+	audioList := make([]*entities.Meta, 0)
 	errList := make([]*FileError, 0)
 
 	err := filepath.WalkDir(root, func(filename string, info fs.DirEntry, err error) error {

@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const ATTR_COLLECTION = "md_attr"
 const MUSIC_COLLECTION = "md_music"
 const AUDIO_COLLECTION = "md_audio"
 
@@ -89,21 +88,5 @@ func (d *daoIns) SaveAttr(rId string, key string, value string) error {
 		err = errors.New("none record updated")
 	}
 
-	return err
-}
-
-/**
- * save
- */
-func (d *daoIns) SaveResources(metas []*entities.AudioMeta) error {
-	coll := d.db.Collection(AUDIO_COLLECTION)
-
-	docs := make([]interface{}, len(metas))
-	for i, item := range metas {
-		docs[i] = item
-	}
-
-	opts := options.InsertMany().SetOrdered(false)
-	_, err := coll.InsertMany(context.TODO(), docs, opts)
 	return err
 }
