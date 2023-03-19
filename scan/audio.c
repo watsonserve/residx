@@ -77,7 +77,7 @@ int load_audio(const char *inputFileName, void *buf, size_t size)
     size_t len = 0;
     // printf("path=%s\n", inputFileName);
     len += snprintf(buf, size, "{\"sample_rate\":%d,", coder_ctx->sample_rate);             // Hz
-    len += snprintf(buf + len, size - len, "\"bit_rate\":%lld,", fmt_ctx->bit_rate / 1000); // kbps
+    len += snprintf(buf + len, size - len, "\"bit_rate\":%ld,", fmt_ctx->bit_rate / 1000); // kbps
     len += snprintf(buf + len, size - len, "\"channels\":%d,", coder_ctx->ch_layout.nb_channels);
     while ((tag = av_dict_get(fmt_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
     {
@@ -88,7 +88,7 @@ int load_audio(const char *inputFileName, void *buf, size_t size)
         if (0x6D75626C61 == key || 0x747369747261 == key || 0x656C746974 == key)
             len += snprintf(buf + len, size - len, "\"%s\": \"%s\",", (char *)(&key), tag->value);
     }
-    len += snprintf(buf + len, size - len, "\"duration\":%lld}", fmt_ctx->duration / AV_TIME_BASE);
+    len += snprintf(buf + len, size - len, "\"duration\":%ld}", fmt_ctx->duration / AV_TIME_BASE);
 
     ret = len;
 

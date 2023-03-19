@@ -48,7 +48,12 @@ func mediaType(filename string) EnMediaType {
 	return UNKNOW
 }
 
-func loadAudioMeta(file string, mem unsafe.Pointer) (*entities.AudioMeta, error) {
+type Meta struct {
+	entities.AudioMeta
+	entities.ResourceMeta
+}
+
+func loadAudioMeta(file string, mem unsafe.Pointer) (*Meta, error) {
 	c_filename := C.CString(file)
 	cret := C.load_audio(c_filename, mem, C.size_t(BUFSIZ))
 	C.free(unsafe.Pointer(c_filename))
@@ -57,7 +62,7 @@ func loadAudioMeta(file string, mem unsafe.Pointer) (*entities.AudioMeta, error)
 		return nil, errors.New("load audio failed")
 	}
 
-	meta := &entities.AudioMeta{}
+	meta := &Meta{}
 	err := json.Unmarshal(C.GoBytes(mem, cret), meta)
 	if nil == err {
 		if "" == meta.Title {
@@ -71,23 +76,23 @@ func loadAudioMeta(file string, mem unsafe.Pointer) (*entities.AudioMeta, error)
 }
 
 type FileError struct {
-	filename string
-	err      error
+	error
+	Filename string
 }
 
-func search(root string) ([]*entities.AudioMeta, []*FileError, error) {
+func search(root string) ([]*Meta, []*FileError, error) {
 	mem := C.malloc(C.size_t(BUFSIZ))
 	if nil == mem {
 		return nil, nil, errors.New("no memary")
 	}
 	defer C.free(mem)
 
-	audioList := make([]*entities.AudioMeta, 0)
+	audioList := make([]*Meta, 0)
 	errList := make([]*FileError, 0)
 
 	err := filepath.WalkDir(root, func(filename string, info fs.DirEntry, err error) error {
 		if nil != err {
-			errList = append(errList, &FileError{filename, err})
+			errList = append(errList, &FileError{error: err, Filename: filename})
 			return filepath.SkipDir
 		}
 
@@ -99,7 +104,7 @@ func search(root string) ([]*entities.AudioMeta, []*FileError, error) {
 		if nil == err {
 			audioList = append(audioList, meta)
 		} else {
-			errList = append(errList, &FileError{filename, err})
+			errList = append(errList, &FileError{error: err, Filename: filename})
 		}
 
 		return nil
