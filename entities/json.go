@@ -20,6 +20,7 @@ type AudioMeta struct {
 }
 
 type Song struct {
+	File       string `json:"file"`
 	Title      string `json:"title"`
 	Album      string `json:"album"`
 	Artist     string `json:"artist"`

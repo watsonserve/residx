@@ -63,7 +63,7 @@ func loadAudioMeta(file string, mem unsafe.Pointer) (*entities.Song, error) {
 		if "" == meta.Title {
 			meta.Title = utils.FileBaseName(file)
 		}
-		meta.Url = file
+		meta.File = file
 		meta.Hash, err = utils.Sha1File(file)
 	}
 
